@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const mockStore = require('../services/mockStore');
+const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'blood_donation_secret_key_student_project_2026';
 
-const requireAuth = (req, res, next) => {
+const requireAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -14,7 +14,7 @@ const requireAuth = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = mockStore.findUserById(decoded.id);
+    const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
       return res.status(401).json({ message: 'User account not found.' });
@@ -22,7 +22,7 @@ const requireAuth = (req, res, next) => {
 
     // Attach current user payload (without password)
     req.user = {
-      id: user._id,
+      id: user._id.toString(),
       email: user.email,
       name: user.name,
       role: user.role,

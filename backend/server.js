@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { connectDB } = require('./utils/db');
+const { seedDemoData } = require('./utils/seedDemoData');
 const authRoutes = require('./routes/authRoutes');
 const donorRoutes = require('./routes/donorRoutes');
 const hospitalRoutes = require('./routes/hospitalRoutes');
@@ -21,9 +22,6 @@ app.use(cors({
 
 // Body parser
 app.use(express.json());
-
-// Database connection check (connects to MongoDB if MONGO_URI is defined, else runs mock store)
-connectDB();
 
 // API Health Check
 app.get('/api/health', (req, res) => {
@@ -52,12 +50,20 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🩸 Blood Donation Management System Backend Running`);
-  console.log(`📍 Port: http://localhost:${PORT}`);
-  console.log(`👤 Demo Donor:    donor@demo.com    / password123`);
-  console.log(`🏥 Demo Hospital: hospital@demo.com / password123`);
-  console.log(`====================================================`);
-});
+// Start Server after establishing mandatory MongoDB Atlas connection
+const startServer = async () => {
+  await connectDB();
+  await seedDemoData();
+
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🩸 Blood Donation Management System Backend Running`);
+    console.log(`📍 Port: http://localhost:${PORT}`);
+    console.log(`👤 Demo Donor:    donor@demo.com    / password123`);
+    console.log(`🏥 Demo Hospital: hospital@demo.com / password123`);
+    console.log(`====================================================`);
+  });
+};
+
+startServer();
+
